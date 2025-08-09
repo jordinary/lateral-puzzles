@@ -19,6 +19,9 @@ model User {
   passwordHash  String?
   role          Role      @default(USER)
   lastLoginAt   DateTime?
+  // Password reset
+  resetToken    String?   @unique
+  resetTokenExpires DateTime?
 
   accounts      Account[]
   sessions      Session[]

@@ -5,6 +5,8 @@ A web-based lateral thinking puzzle game inspired by the Tim Tang Test. Players 
 ## Features
 
 - **User Authentication**: Login/register system with role-based access
+- **OAuth Integration**: Google sign-in support for easy account creation
+- **Password Reset**: Secure forgot password flow with email-based reset
 - **Level Progression**: Unlock new levels by solving previous ones
 - **Visual Puzzles**: Retro-styled puzzle components with CRT aesthetic
 - **Admin Interface**: Create, edit, and manage levels and content
@@ -51,7 +53,22 @@ Edit `.env` with your configuration:
 DATABASE_URL="file:./dev.db"
 NEXTAUTH_SECRET="your-secret-key"
 NEXTAUTH_URL="http://localhost:3000"
+
+# Optional: Google OAuth (for Google sign-in)
+GOOGLE_CLIENT_ID="your-google-client-id"
+GOOGLE_CLIENT_SECRET="your-google-client-secret"
 ```
+
+### Setting up Google OAuth (Optional)
+
+To enable Google sign-in:
+
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Create a new project or select an existing one
+3. Enable the Google+ API
+4. Go to "Credentials" and create an OAuth 2.0 Client ID
+5. Add `http://localhost:3000/api/auth/callback/google` to authorized redirect URIs
+6. Copy the Client ID and Client Secret to your `.env` file
 
 4. Set up the database:
 ```bash
