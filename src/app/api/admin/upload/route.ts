@@ -6,11 +6,18 @@ import path from "path";
 
 export const runtime = "nodejs";
 
+interface SessionUser {
+  id: string;
+  email?: string | null;
+  name?: string | null;
+  role?: string;
+}
+
 export async function POST(request: Request) {
   const session = await getServerSession(authOptions);
   if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   // Basic role check via email or role claim
-  const role = (session.user as any).role;
+  const role = (session.user as SessionUser).role;
   const email = session.user.email;
   if (!(role === "ADMIN" || email === "admin@example.com")) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });

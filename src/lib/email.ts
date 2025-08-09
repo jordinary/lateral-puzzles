@@ -1,6 +1,12 @@
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Only create Resend instance if API key is available
+const getResend = () => {
+  if (!process.env.RESEND_API_KEY) {
+    return null;
+  }
+  return new Resend(process.env.RESEND_API_KEY);
+};
 
 export interface EmailOptions {
   to: string;
@@ -21,6 +27,11 @@ export async function sendEmail(options: EmailOptions) {
   }
 
   try {
+    const resend = getResend();
+    if (!resend) {
+      throw new Error('Email service not configured');
+    }
+
     const { data, error } = await resend.emails.send({
       from: options.from || process.env.EMAIL_FROM || 'noreply@lateral-puzzles.com',
       to: [options.to],

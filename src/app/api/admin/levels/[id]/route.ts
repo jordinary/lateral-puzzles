@@ -6,10 +6,17 @@ import bcrypt from "bcrypt";
 
 export const runtime = "nodejs";
 
+interface SessionUser {
+  id: string;
+  email?: string | null;
+  name?: string | null;
+  role?: string;
+}
+
 async function requireAdmin() {
   const session = await getServerSession(authOptions);
   if (!session?.user) return null;
-  const user = await prisma.user.findUnique({ where: { id: (session.user as any).id } });
+  const user = await prisma.user.findUnique({ where: { id: (session.user as SessionUser).id } });
   if (user?.role !== "ADMIN") return null;
   return session;
 }

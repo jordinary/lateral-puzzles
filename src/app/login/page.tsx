@@ -11,7 +11,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [providers, setProviders] = useState<any>(null);
+  const [providers, setProviders] = useState<Record<string, unknown> | null>(null);
 
   useEffect(() => {
     // Fetch available providers

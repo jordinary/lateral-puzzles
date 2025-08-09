@@ -163,6 +163,46 @@ The application uses the following main models:
 - **LevelSolve**: Track when users solve levels
 - **AnswerAttempt**: Log all answer attempts for analytics
 
+## 🚀 Deployment
+
+### Deploy to Render (Recommended)
+
+This app is configured for easy deployment to Render. See [DEPLOYMENT.md](./DEPLOYMENT.md) for detailed instructions.
+
+**Quick Start:**
+1. Push your code to GitHub
+2. Create a Render account at [render.com](https://render.com)
+3. Connect your GitHub repository
+4. Set environment variables (see DEPLOYMENT.md)
+5. Deploy!
+
+### Environment Variables for Production
+
+Required:
+```bash
+NODE_ENV=production
+DATABASE_URL=your-postgresql-url
+NEXTAUTH_SECRET=your-super-secret-key
+NEXTAUTH_URL=https://your-app-name.onrender.com
+```
+
+Optional:
+```bash
+GOOGLE_CLIENT_ID=your-google-client-id
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+RESEND_API_KEY=your-resend-api-key
+EMAIL_FROM=noreply@yourdomain.com
+UPSTASH_REDIS_REST_URL=your-redis-url
+UPSTASH_REDIS_REST_TOKEN=your-redis-token
+```
+
+### Other Deployment Options
+
+- **Vercel**: Compatible with Next.js apps
+- **Railway**: Good for full-stack apps
+- **Heroku**: Traditional deployment option
+- **DigitalOcean App Platform**: Scalable option
+
 ## Contributing
 
 1. Fork the repository

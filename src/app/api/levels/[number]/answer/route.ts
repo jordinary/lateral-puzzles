@@ -4,10 +4,17 @@ import authOptions from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcrypt";
 
+interface SessionUser {
+  id: string;
+  email?: string | null;
+  name?: string | null;
+  role?: string;
+}
+
 export async function POST(request: Request, context: { params: Promise<{ number: string }> }) {
   const session = await getServerSession(authOptions);
   if (!session?.user) return NextResponse.redirect(new URL("/login", request.url));
-  const userId = (session.user as any).id as string;
+  const userId = (session.user as SessionUser).id;
 
   const p = await context.params;
   const number = Number(p.number);

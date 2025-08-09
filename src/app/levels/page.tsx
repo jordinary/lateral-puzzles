@@ -3,6 +3,13 @@ import authOptions from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 
+interface SessionUser {
+  id: string;
+  email?: string | null;
+  name?: string | null;
+  role?: string;
+}
+
 export default async function LevelsIndex() {
   const session = await getServerSession(authOptions);
   if (!session?.user) {
@@ -14,7 +21,7 @@ export default async function LevelsIndex() {
       </div>
     );
   }
-  const userId = (session.user as any).id as string;
+  const userId = (session.user as SessionUser).id;
 
   const levels = await prisma.level.findMany({ orderBy: { number: "asc" } });
   const unlocks = await prisma.levelUnlock.findMany({ where: { userId } });

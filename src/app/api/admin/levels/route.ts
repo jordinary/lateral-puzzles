@@ -6,11 +6,18 @@ import bcrypt from "bcrypt";
 
 export const runtime = "nodejs";
 
+interface SessionUser {
+  id: string;
+  email?: string | null;
+  name?: string | null;
+  role?: string;
+}
+
 export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    const user = await prisma.user.findUnique({ where: { id: (session.user as any).id } });
+    const user = await prisma.user.findUnique({ where: { id: (session.user as SessionUser).id } });
     if (user?.role !== "ADMIN") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     const body = await request.json();
@@ -43,12 +50,13 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json({ id: level.id });
-  } catch (err: any) {
-    if (err?.code === "P2002") {
+  } catch (err: unknown) {
+    const error = err as { code?: string; message?: string };
+    if (error?.code === "P2002") {
       return NextResponse.json({ error: "Level number must be unique" }, { status: 409 });
     }
     console.error("Create level error:", err);
-    const message = process.env.NODE_ENV !== "production" && err?.message ? err.message : "Internal Server Error";
+    const message = process.env.NODE_ENV !== "production" && error?.message ? error.message : "Internal Server Error";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

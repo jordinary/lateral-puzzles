@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import Link from "next/link";
 
 export default async function AdminHome() {
   const [users, solves, attempts] = await Promise.all([
@@ -10,7 +11,7 @@ export default async function AdminHome() {
     <div className="space-y-8">
       <h1 className="text-2xl font-semibold">Admin Dashboard</h1>
       <div>
-        <a className="underline" href="/admin/levels">Manage Levels</a>
+        <Link className="underline" href="/admin/levels">Manage Levels</Link>
       </div>
       <section>
         <h2 className="text-lg font-medium mb-2">Users</h2>

@@ -3,10 +3,17 @@ import authOptions from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 
+interface SessionUser {
+  id: string;
+  email?: string | null;
+  name?: string | null;
+  role?: string;
+}
+
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const session = await getServerSession(authOptions);
   if (!session?.user) redirect("/login");
-  const user = await prisma.user.findUnique({ where: { id: (session.user as any).id } });
+  const user = await prisma.user.findUnique({ where: { id: (session.user as SessionUser).id } });
   if (user?.role !== "ADMIN") redirect("/levels");
   return <div className="max-w-6xl mx-auto p-6 space-y-6">{children}</div>;
 }
