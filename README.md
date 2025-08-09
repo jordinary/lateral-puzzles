@@ -70,6 +70,34 @@ To enable Google sign-in:
 5. Add `http://localhost:3000/api/auth/callback/google` to authorized redirect URIs
 6. Copy the Client ID and Client Secret to your `.env` file
 
+### Setting up Email Service (Required for password reset)
+
+The application uses [Resend](https://resend.com/) for sending emails. To set up:
+
+1. Sign up for a free account at [Resend](https://resend.com/)
+2. Get your API key from the dashboard
+3. Add your API key to `.env`:
+   ```env
+   RESEND_API_KEY="re_your-api-key-here"
+   EMAIL_FROM="noreply@yourdomain.com"
+   ```
+
+**Note**: For development, if email service is not configured, the app will show reset URLs in the console and UI for testing purposes.
+
+### Setting up Rate Limiting (Optional - for production)
+
+To protect against abuse, the application includes rate limiting for password reset requests:
+
+1. Sign up for a free account at [Upstash](https://upstash.com/)
+2. Create a Redis database
+3. Add your Redis credentials to `.env`:
+   ```env
+   UPSTASH_REDIS_REST_URL="https://your-redis-url.upstash.io"
+   UPSTASH_REDIS_REST_TOKEN="your-redis-token"
+   ```
+
+**Note**: If Redis is not configured, the app will use in-memory rate limiting as a fallback.
+
 4. Set up the database:
 ```bash
 npm run prisma:migrate

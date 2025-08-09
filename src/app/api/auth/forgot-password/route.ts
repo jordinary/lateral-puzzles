@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { sendEmail, createPasswordResetEmail } from "@/lib/email";
+import { checkRateLimit } from "@/lib/rate-limit";
 import crypto from "crypto";
 
 export const runtime = 'nodejs';
@@ -10,6 +12,26 @@ export async function POST(request: Request) {
 
     if (!email) {
       return NextResponse.json({ error: "Email is required" }, { status: 400 });
+    }
+
+    // Rate limiting
+    const rateLimitResult = await checkRateLimit(`forgot-password:${email}`);
+    if (!rateLimitResult.success) {
+      return NextResponse.json(
+        { 
+          error: "Too many password reset requests. Please wait before trying again.",
+          retryAfter: Math.ceil((rateLimitResult.reset - Date.now()) / 1000)
+        }, 
+        { 
+          status: 429,
+          headers: {
+            'Retry-After': Math.ceil((rateLimitResult.reset - Date.now()) / 1000).toString(),
+            'X-RateLimit-Limit': rateLimitResult.limit.toString(),
+            'X-RateLimit-Remaining': rateLimitResult.remaining.toString(),
+            'X-RateLimit-Reset': rateLimitResult.reset.toString(),
+          }
+        }
+      );
     }
 
     // Check if user exists
@@ -35,18 +57,40 @@ export async function POST(request: Request) {
       },
     });
 
-    // In a real application, you would send an email here
-    // For now, we'll just return the reset token in the response
-    // In production, you should use a proper email service like SendGrid, Mailgun, etc.
-    
+    // Create reset URL
     const resetUrl = `${process.env.NEXTAUTH_URL}/reset-password?token=${resetToken}`;
     
-    console.log(`Password reset URL for ${email}: ${resetUrl}`);
+    try {
+      // Send password reset email
+      const { subject, html } = createPasswordResetEmail(email, resetUrl);
+      await sendEmail({
+        to: email,
+        subject,
+        html,
+      });
+
+      console.log(`Password reset email sent to ${email}`);
+    } catch (emailError) {
+      console.error("Failed to send password reset email:", emailError);
+      
+      // In development, still return the reset URL for testing
+      if (process.env.NODE_ENV === "development") {
+        return NextResponse.json({ 
+          message: "If an account with that email exists, a password reset link has been sent.",
+          resetUrl,
+          error: "Email service not configured - using development mode"
+        });
+      }
+      
+      // In production, don't expose the reset URL
+      return NextResponse.json({ 
+        message: "If an account with that email exists, a password reset link has been sent.",
+        error: "Email service temporarily unavailable"
+      });
+    }
 
     return NextResponse.json({ 
-      message: "If an account with that email exists, a password reset link has been sent.",
-      // Remove this in production - only for development
-      resetUrl: process.env.NODE_ENV === "development" ? resetUrl : undefined
+      message: "If an account with that email exists, a password reset link has been sent."
     });
   } catch (error) {
     console.error("Forgot password error:", error);

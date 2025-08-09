@@ -31,6 +31,9 @@ export default function ForgotPasswordPage() {
         if (data.resetUrl) {
           setResetUrl(data.resetUrl);
         }
+        if (data.error && data.error.includes("development mode")) {
+          setMessage(data.message + " (Development mode - check console for reset URL)");
+        }
       } else {
         setError(data.error || "Something went wrong");
       }
