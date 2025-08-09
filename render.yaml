@@ -4,7 +4,8 @@ services:
     env: node
     plan: free
     buildCommand: npm install && npm run prisma:generate && npm run build
-    startCommand: npm start
+    startCommand: ./scripts/start.sh
+    healthCheckPath: /
     envVars:
       - key: NODE_ENV
         value: production
