@@ -2,6 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import authOptions from "@/lib/auth";
+import PuzzleImage from "@/components/PuzzleImage";
 import RetroPuzzleOne from "@/components/puzzles/RetroPuzzleOne";
 import RetroPuzzleTwo from "@/components/puzzles/RetroPuzzleTwo";
 import RetroPuzzleThree from "@/components/puzzles/RetroPuzzleThree";
@@ -45,14 +46,11 @@ export default async function LevelPage({ params, searchParams }: { params: Prom
       return (
         <div className="space-y-4">
           {level?.assetUrl && (
-            <div className="flex justify-center">
-              <img 
-                src={level.assetUrl} 
-                alt={`Level ${level.number} puzzle`}
-                className="max-w-full h-auto rounded border"
-                style={{ maxHeight: '400px' }}
-              />
-            </div>
+            <PuzzleImage 
+              src={level.assetUrl}
+              alt={`Level ${level.number} puzzle`}
+              levelNumber={level.number}
+            />
           )}
           {level?.content && (
             <div className="bg-gray-50 p-4 rounded border">
