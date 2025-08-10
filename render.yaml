@@ -3,7 +3,7 @@ services:
     name: lateral-puzzles
     env: node
     plan: free
-    buildCommand: npm install && npm run prisma:generate && npm run build
+    buildCommand: npm install && npx prisma generate && npm run build
     startCommand: ./scripts/start.sh
     healthCheckPath: /
     envVars:
