@@ -25,20 +25,16 @@ export default function LoginPage() {
     event.preventDefault();
     setError(null);
     setIsLoading(true);
-    
-    const res = await signIn("credentials", {
-      redirect: false,
-      email,
-      password,
-    });
-    
-    setIsLoading(false);
-    
-    if (res?.error) {
-      setError("Invalid credentials");
-      return;
+    try {
+      await signIn("credentials", {
+        email,
+        password,
+        callbackUrl: "/levels",
+      });
+    } catch (e) {
+      setIsLoading(false);
+      setError("Sign in failed");
     }
-    router.push("/levels");
   }
 
   async function handleGoogleSignIn() {
