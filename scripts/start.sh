@@ -33,8 +33,8 @@ if ! npx prisma migrate deploy; then
   npx prisma db push
 fi
 
-# Seed the database if configured
-echo "🌱 Seeding database (if configured)..."
+# Seed the database
+echo "🌱 Seeding database..."
 npm run prisma:seed || true
 
 echo "✅ Database setup complete"
