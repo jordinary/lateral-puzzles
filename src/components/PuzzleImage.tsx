@@ -38,11 +38,13 @@ export default function PuzzleImage({ src, alt, levelNumber, className = "" }: P
         <div className="text-center text-gray-500">
           <p className="text-sm">Image could not be loaded</p>
           <p className="text-xs mt-1">Please contact an administrator</p>
+          <p className="text-xs mt-1 text-gray-400">URL: {imageSrc}</p>
         </div>
       </div>
     );
   }
 
+  // Since we disabled image optimization, use regular img tag for better debugging
   return (
     <div className="flex justify-center">
       <div className="relative w-full max-w-2xl">
@@ -51,21 +53,22 @@ export default function PuzzleImage({ src, alt, levelNumber, className = "" }: P
             <div className="text-gray-500">Loading image...</div>
           </div>
         )}
-        <Image 
+        <img 
           src={imageSrc}
           alt={alt}
-          width={800}
-          height={600}
           className={`max-w-full h-auto rounded border ${className}`}
           style={{ 
             maxHeight: '400px', 
             objectFit: 'contain',
             display: isLoading ? 'none' : 'block'
           }}
-          priority={levelNumber === 1}
-          onLoad={() => setIsLoading(false)}
+          onLoad={() => {
+            console.log('Image loaded successfully:', imageSrc);
+            setIsLoading(false);
+          }}
           onError={(e) => {
             console.error('Image failed to load:', imageSrc);
+            console.error('Error details:', e);
             setImageError(true);
             setIsLoading(false);
           }}
