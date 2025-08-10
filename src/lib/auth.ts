@@ -37,24 +37,40 @@ export const authOptions: NextAuthOptions = {
     signIn: "/login",
   },
   callbacks: {
-    async signIn({ user, account }) {
-      if (account?.provider === "google") {
-        // Update last login time for OAuth users
-        await prisma.user.update({
-          where: { id: user.id },
-          data: { lastLoginAt: new Date() },
-        });
-      }
+    async signIn() {
       return true;
     },
-    async jwt({ token, user }) {
+    async jwt({ token, user, account }) {
       if (user?.id) {
         token.sub = user.id;
         (token as any).role = (user as any).role ?? (token as any).role;
-      } else if (token?.sub && !('role' in token)) {
-        // Populate role on subsequent calls
-        const u = await prisma.user.findUnique({ where: { id: token.sub } });
-        (token as any).role = u?.role ?? 'USER';
+        return token;
+      }
+
+      if ((account as any)?.provider === "google" && user?.email) {
+        const dbUser = await prisma.user.upsert({
+          where: { email: user.email },
+          update: {
+            name: user.name ?? undefined,
+            image: (user as any).image ?? undefined,
+            lastLoginAt: new Date(),
+          },
+          create: {
+            email: user.email,
+            name: user.name ?? null,
+            image: (user as any).image ?? null,
+            role: 'USER',
+            lastLoginAt: new Date(),
+          },
+        });
+        token.sub = dbUser.id;
+        (token as any).role = dbUser.role;
+        return token;
+      }
+
+      if (token?.sub && !('role' in token)) {
+        const dbUser = await prisma.user.findUnique({ where: { id: token.sub } });
+        (token as any).role = dbUser?.role ?? 'USER';
       }
       return token;
     },
