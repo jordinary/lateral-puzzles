@@ -1,6 +1,6 @@
 import { type NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import GoogleProvider from "next-auth/providers/google";
+// Google OAuth removed for credentials-only auth
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcrypt";
 
@@ -12,13 +12,6 @@ export const authOptions: NextAuthOptions = {
   trustHost: true,
   session: { strategy: "jwt" },
   providers: [
-    // Only add Google provider if credentials are configured
-    ...(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET ? [
-      GoogleProvider({
-        clientId: process.env.GOOGLE_CLIENT_ID,
-        clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      })
-    ] : []),
     CredentialsProvider({
       name: "Credentials",
       credentials: {
@@ -43,31 +36,10 @@ export const authOptions: NextAuthOptions = {
     async signIn() {
       return true;
     },
-    async jwt({ token, user, account }) {
+    async jwt({ token, user }) {
       if (user?.id) {
         token.sub = user.id;
         (token as any).role = (user as any).role ?? (token as any).role;
-        return token;
-      }
-
-      if ((account as any)?.provider === "google" && user?.email) {
-        const dbUser = await prisma.user.upsert({
-          where: { email: user.email },
-          update: {
-            name: user.name ?? undefined,
-            image: (user as any).image ?? undefined,
-            lastLoginAt: new Date(),
-          },
-          create: {
-            email: user.email,
-            name: user.name ?? null,
-            image: (user as any).image ?? null,
-            role: 'USER',
-            lastLoginAt: new Date(),
-          },
-        });
-        token.sub = dbUser.id;
-        (token as any).role = dbUser.role;
         return token;
       }
 
