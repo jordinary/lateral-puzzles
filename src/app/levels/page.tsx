@@ -12,19 +12,12 @@ interface SessionUser {
 
 export default async function LevelsIndex() {
   const session = await getServerSession(authOptions);
-  if (!session?.user) {
-    return (
-      <div className="p-6">
-        <p>
-          Please <a className="underline" href="/login">sign in</a> to view your levels.
-        </p>
-      </div>
-    );
-  }
-  const userId = (session.user as SessionUser).id;
+  const userId = session?.user ? (session.user as SessionUser).id : null;
 
   const levels = await prisma.level.findMany({ orderBy: { number: "asc" } });
-  const unlocks = await prisma.levelUnlock.findMany({ where: { userId } });
+  const unlocks = userId
+    ? await prisma.levelUnlock.findMany({ where: { userId } })
+    : [];
   const unlockedIds = new Set(unlocks.map((u) => u.levelId));
 
   return (
@@ -32,7 +25,7 @@ export default async function LevelsIndex() {
       <h1 className="text-2xl font-semibold">Levels</h1>
       <ul className="space-y-2">
         {levels.map((lvl) => {
-          const unlocked = unlockedIds.has(lvl.id);
+          const unlocked = lvl.number === 1 || unlockedIds.has(lvl.id);
           return (
             <li key={lvl.id} className="flex items-center justify-between border rounded p-3">
               <div>

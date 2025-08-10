@@ -15,8 +15,7 @@ interface SessionUser {
 
 export default async function LevelPage({ params, searchParams }: { params: Promise<{ number: string }>, searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
   const session = await getServerSession(authOptions);
-  if (!session?.user) redirect("/login");
-  const userId = (session.user as SessionUser).id;
+  const userId = session?.user ? (session.user as SessionUser).id : null;
 
   const p = await params;
   const number = Number(p.number);
@@ -25,12 +24,16 @@ export default async function LevelPage({ params, searchParams }: { params: Prom
   const level = await prisma.level.findUnique({ where: { number }, include: { answers: true } });
   if (!level) notFound();
 
-  // Gate: ensure user has unlocked this level
-  const unlocked = await prisma.levelUnlock.findUnique({
-    where: { userId_levelId: { userId, levelId: level.id } },
-  });
-  if (!unlocked) {
-    redirect("/levels");
+  // Gate: Level 1 is always accessible to everyone
+  if (number !== 1) {
+    // For other levels, require login and unlock
+    if (!userId) redirect("/login");
+    const unlocked = await prisma.levelUnlock.findUnique({
+      where: { userId_levelId: { userId, levelId: level.id } },
+    });
+    if (!unlocked) {
+      redirect("/levels");
+    }
   }
 
   const sp = await searchParams;
