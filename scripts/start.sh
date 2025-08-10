@@ -26,13 +26,16 @@ echo "✅ Environment variables check passed"
 echo "🔧 Generating Prisma client..."
 npx prisma generate
 
-# Run database migrations
+# Run database migrations with fallback to db push
 echo "🗄️ Running database migrations..."
-npx prisma migrate deploy
+if ! npx prisma migrate deploy; then
+  echo "⚠️  Migrations not found or failed. Falling back to 'prisma db push' to sync schema..."
+  npx prisma db push
+fi
 
-# Seed the database if needed
-echo "🌱 Seeding database..."
-npx prisma db seed
+# Seed the database if configured
+echo "🌱 Seeding database (if configured)..."
+npm run prisma:seed || true
 
 echo "✅ Database setup complete"
 
