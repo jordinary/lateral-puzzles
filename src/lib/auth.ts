@@ -9,6 +9,7 @@ import bcrypt from "bcrypt";
 export const authOptions: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
   debug: process.env.NEXTAUTH_DEBUG === 'true' || process.env.NODE_ENV !== 'production',
+  trustHost: true,
   session: { strategy: "jwt" },
   providers: [
     // Only add Google provider if credentials are configured
