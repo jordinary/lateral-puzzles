@@ -28,11 +28,17 @@ npx prisma migrate deploy || {
     npx prisma db push
 }
 
-# Seed the database
-echo "🌱 Seeding database..."
-npm run prisma:seed || {
-    echo "⚠️ Prisma seed failed or not configured, continuing without seeding."
-}
+# Only seed if the database is empty (no levels exist)
+echo "🔍 Checking if database needs seeding..."
+LEVEL_COUNT=$(npx prisma db execute --stdin <<< "SELECT COUNT(*) as count FROM \"Level\";" | grep -o '[0-9]*' | tail -1)
+if [ "$LEVEL_COUNT" = "0" ]; then
+    echo "🌱 Database is empty, seeding initial data..."
+    npm run prisma:seed || {
+        echo "⚠️ Prisma seed failed, continuing without seeding."
+    }
+else
+    echo "✅ Database already contains data, skipping seed operation."
+fi
 
 # Ensure uploads directory exists with proper permissions
 echo "📁 Setting up uploads directory..."

@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import authOptions from "@/lib/auth";
-import { writeFile, mkdir, access } from "fs/promises";
-import path from "path";
+import imagekit, { isImageKitConfigured } from "@/lib/imagekit";
 
 export const runtime = "nodejs";
 
@@ -15,6 +14,13 @@ interface SessionUser {
 
 export async function POST(request: Request) {
   try {
+    // Check if ImageKit is configured
+    if (!isImageKitConfigured()) {
+      return NextResponse.json({ 
+        error: "ImageKit is not configured. Please set IMAGEKIT_PUBLIC_KEY, IMAGEKIT_PRIVATE_KEY, and IMAGEKIT_URL_ENDPOINT environment variables." 
+      }, { status: 500 });
+    }
+
     const session = await getServerSession(authOptions);
     if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     
@@ -40,50 +46,66 @@ export async function POST(request: Request) {
       }, { status: 400 });
     }
 
-    // Validate file size (5MB limit)
-    const maxSize = 5 * 1024 * 1024; // 5MB
+    // Validate file size (10MB limit for ImageKit)
+    const maxSize = 10 * 1024 * 1024; // 10MB
     if (file.size > maxSize) {
       return NextResponse.json({ 
-        error: "File too large. Maximum size is 5MB." 
+        error: "File too large. Maximum size is 10MB." 
       }, { status: 400 });
     }
 
+    // Convert file to buffer
     const bytes = new Uint8Array(await file.arrayBuffer());
-    const ext = path.extname(file.name) || ".png";
-    const name = `${crypto.randomUUID()}${ext}`;
-    
-    // Ensure upload directory exists
-    const uploadDir = path.join(process.cwd(), "public", "uploads");
-    await mkdir(uploadDir, { recursive: true });
-    
-    const filePath = path.join(uploadDir, name);
-    await writeFile(filePath, bytes);
-    
-    // Verify file was written successfully
-    try {
-      await access(filePath);
-    } catch (error) {
-      console.error("Failed to verify uploaded file:", error);
-      return NextResponse.json({ error: "Failed to save file" }, { status: 500 });
+    const buffer = Buffer.from(bytes);
+
+    // Generate unique filename
+    const timestamp = Date.now();
+    const randomId = Math.random().toString(36).substring(2, 15);
+    const filename = `lateral-puzzles/${timestamp}-${randomId}`;
+
+    // Upload to ImageKit
+    const result = await imagekit!.upload({
+      file: buffer,
+      fileName: filename,
+      folder: 'lateral-puzzles',
+      useUniqueFileName: true,
+      overwriteFile: false,
+      tags: ['lateral-puzzles', 'puzzle-image']
+    });
+
+    if (!result || !result.url) {
+      throw new Error('Upload failed - no result from ImageKit');
     }
 
-    const url = `/uploads/${name}`;
-    
-    console.log(`File uploaded successfully: ${filePath} -> ${url}`);
+    console.log(`File uploaded successfully to ImageKit: ${filename} -> ${result.url}`);
     
     return NextResponse.json({ 
-      url,
-      filename: name,
+      url: result.url,
+      fileId: result.fileId,
+      filename: filename,
       size: file.size,
-      type: file.type
+      type: file.type,
+      imagekitId: result.fileId
     });
     
   } catch (error) {
     console.error("Upload error:", error);
+    
+    // Provide more specific error messages
+    let errorMessage = "Internal server error during upload";
+    if (error instanceof Error) {
+      if (error.message.includes('publicKey') || error.message.includes('privateKey')) {
+        errorMessage = "ImageKit configuration error. Please check environment variables.";
+      } else if (error.message.includes('urlEndpoint')) {
+        errorMessage = "ImageKit URL endpoint error. Please check environment variables.";
+      } else {
+        errorMessage = error.message;
+      }
+    }
+    
     return NextResponse.json({ 
-      error: "Internal server error during upload" 
+      error: errorMessage,
+      details: process.env.NODE_ENV === 'development' ? error : undefined
     }, { status: 500 });
   }
 }
-
-

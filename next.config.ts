@@ -5,14 +5,15 @@ const nextConfig: NextConfig = {
     ignoreDuringBuilds: true,
   },
   images: {
-    domains: ['localhost'],
+    domains: ['localhost', 'ik.imagekit.io'],
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: '**',
+        hostname: 'ik.imagekit.io',
+        pathname: '/**',
       },
     ],
-    unoptimized: true, // Temporarily disable optimization for debugging
+    unoptimized: false, // Re-enable optimization for ImageKit images
   },
 };
 

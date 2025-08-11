@@ -44,7 +44,7 @@ export default function PuzzleImage({ src, alt, levelNumber, className = "" }: P
     );
   }
 
-  // Since we disabled image optimization, use regular img tag for better debugging
+  // Use Next.js Image component for ImageKit images
   return (
     <div className="flex justify-center">
       <div className="relative w-full max-w-2xl">
@@ -53,15 +53,18 @@ export default function PuzzleImage({ src, alt, levelNumber, className = "" }: P
             <div className="text-gray-500">Loading image...</div>
           </div>
         )}
-        <img 
+        <Image 
           src={imageSrc}
           alt={alt}
+          width={800}
+          height={600}
           className={`max-w-full h-auto rounded border ${className}`}
           style={{ 
             maxHeight: '400px', 
             objectFit: 'contain',
             display: isLoading ? 'none' : 'block'
           }}
+          priority={levelNumber === 1}
           onLoad={() => {
             console.log('Image loaded successfully:', imageSrc);
             setIsLoading(false);
