@@ -1,6 +1,9 @@
 import { prisma } from "@/lib/prisma";
 import PuzzleImage from "@/components/PuzzleImage";
 
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 async function getUploadsDebugInfo() {
   try {
     const response = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/debug/uploads`, {
@@ -10,7 +13,7 @@ async function getUploadsDebugInfo() {
       return await response.json();
     }
     return { error: 'Failed to fetch debug info' };
-  } catch (error) {
+  } catch {
     return { error: 'Error fetching debug info' };
   }
 }
@@ -46,7 +49,6 @@ export default async function TestImagesPage() {
                 <PuzzleImage 
                   src={level.assetUrl!}
                   alt={`Level ${level.number} puzzle`}
-                  levelNumber={level.number}
                 />
               </div>
             </div>

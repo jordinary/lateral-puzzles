@@ -6,11 +6,10 @@ import { useState } from "react";
 interface PuzzleImageProps {
   src: string;
   alt: string;
-  levelNumber: number;
   className?: string;
 }
 
-export default function PuzzleImage({ src, alt, levelNumber, className = "" }: PuzzleImageProps) {
+export default function PuzzleImage({ src, alt, className = "" }: PuzzleImageProps) {
   const [imageError, setImageError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -44,7 +43,6 @@ export default function PuzzleImage({ src, alt, levelNumber, className = "" }: P
     );
   }
 
-  // Since we disabled image optimization, use regular img tag for better debugging
   return (
     <div className="flex justify-center">
       <div className="relative w-full max-w-2xl">
@@ -53,25 +51,21 @@ export default function PuzzleImage({ src, alt, levelNumber, className = "" }: P
             <div className="text-gray-500">Loading image...</div>
           </div>
         )}
-        <img 
+        <Image 
           src={imageSrc}
           alt={alt}
-          className={`max-w-full h-auto rounded border ${className}`}
-          style={{ 
-            maxHeight: '400px', 
-            objectFit: 'contain',
-            display: isLoading ? 'none' : 'block'
-          }}
+          width={1600}
+          height={1200}
+          className={`h-auto w-full max-w-full rounded border object-contain ${className}`}
           onLoad={() => {
-            console.log('Image loaded successfully:', imageSrc);
             setIsLoading(false);
           }}
-          onError={(e) => {
-            console.error('Image failed to load:', imageSrc);
-            console.error('Error details:', e);
+          onError={() => {
             setImageError(true);
             setIsLoading(false);
           }}
+          unoptimized
+          priority={false}
         />
       </div>
     </div>

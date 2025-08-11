@@ -2,11 +2,10 @@
 
 import { signIn } from "next-auth/react";
 import { useState, Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 
 function LoginContent() {
-  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -24,7 +23,7 @@ function LoginContent() {
         password,
         callbackUrl: "/levels",
       });
-    } catch (e) {
+    } catch {
       setIsLoading(false);
       setError("Sign in failed");
     }
@@ -44,7 +43,7 @@ function LoginContent() {
         )}
         
         
-
+        
         <form onSubmit={onSubmit} className="space-y-4">
           <input
             type="email"

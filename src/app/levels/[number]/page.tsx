@@ -49,7 +49,6 @@ export default async function LevelPage({ params, searchParams }: { params: Prom
             <PuzzleImage 
               src={level.assetUrl}
               alt={`Level ${level.number} puzzle`}
-              levelNumber={level.number}
             />
           )}
           {level?.content && (

@@ -11,7 +11,7 @@ export async function GET() {
     // Check if directory exists
     try {
       await access(uploadsDir);
-    } catch (error) {
+    } catch {
       return NextResponse.json({
         error: "Uploads directory does not exist",
         path: uploadsDir,
