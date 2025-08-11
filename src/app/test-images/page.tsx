@@ -3,7 +3,7 @@ import PuzzleImage from "@/components/PuzzleImage";
 
 async function getUploadsDebugInfo() {
   try {
-    const response = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/debug/uploads`, {
+    const response = await fetch(`${process.env.NEXTAUTH_URL || ''}/api/debug/uploads`, {
       cache: 'no-store'
     });
     if (response.ok) {
