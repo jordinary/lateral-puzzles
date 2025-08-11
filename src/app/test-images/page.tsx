@@ -13,7 +13,7 @@ async function getUploadsDebugInfo() {
       return await response.json();
     }
     return { error: 'Failed to fetch debug info' };
-  } catch (error) {
+  } catch {
     return { error: 'Error fetching debug info' };
   }
 }
@@ -49,7 +49,6 @@ export default async function TestImagesPage() {
                 <PuzzleImage 
                   src={level.assetUrl!}
                   alt={`Level ${level.number} puzzle`}
-                  levelNumber={level.number}
                 />
               </div>
             </div>
