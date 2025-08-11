@@ -40,8 +40,16 @@ export default function AnswerForm({ levelNumber }: AnswerFormProps) {
       } else {
         console.log('Setting error message:', result.message); // Debug log
         setMessage({ type: 'error', text: result.message });
-        // Clear the input field
-        (e.currentTarget.elements.namedItem('answer') as HTMLInputElement).value = '';
+        // Clear the input field safely
+        try {
+          const answerInput = e.currentTarget.elements.namedItem('answer') as HTMLInputElement;
+          if (answerInput) {
+            answerInput.value = '';
+          }
+        } catch (clearError) {
+          console.log('Error clearing input field:', clearError);
+          // Don't let this error override our API message
+        }
       }
     } catch (error) {
       setMessage({ type: 'error', text: 'An error occurred. Please try again.' });
