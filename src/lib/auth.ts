@@ -1,10 +1,19 @@
 import { type NextAuthOptions } from "next-auth";
+import type { Session } from "next-auth";
+import type { JWT } from "next-auth/jwt";
 import CredentialsProvider from "next-auth/providers/credentials";
 // Google OAuth removed for credentials-only auth
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcrypt";
+import type { Role } from "@prisma/client";
 
 
+type TokenWithRole = JWT & { role?: Role };
+
+type SessionUserWithExtras = NonNullable<Session["user"]> & {
+  id: string;
+  role?: Role;
+};
 
 export const authOptions: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
@@ -24,7 +33,13 @@ export const authOptions: NextAuthOptions = {
         const isValid = await bcrypt.compare(credentials.password, user.passwordHash);
         if (!isValid) return null;
         await prisma.user.update({ where: { id: user.id }, data: { lastLoginAt: new Date() } });
-        return { id: user.id, email: user.email, name: user.name, image: user.image, role: user.role };
+        return { id: user.id, email: user.email, name: user.name, image: user.image, role: user.role } as {
+          id: string;
+          email: string | null;
+          name: string | null;
+          image: string | null;
+          role: Role;
+        };
       },
     }),
   ],
@@ -36,22 +51,27 @@ export const authOptions: NextAuthOptions = {
       return true;
     },
     async jwt({ token, user }) {
+      const tokenWithRole: TokenWithRole = token as TokenWithRole;
+
       if (user?.id) {
-        token.sub = user.id;
-        (token as any).role = (user as any).role ?? (token as any).role;
-        return token;
+        const userWithRole = user as { id?: string; role?: Role };
+        if (userWithRole.id) tokenWithRole.sub = userWithRole.id;
+        if (userWithRole.role) tokenWithRole.role = userWithRole.role;
+        return tokenWithRole;
       }
 
-      if (token?.sub && !('role' in token)) {
-        const dbUser = await prisma.user.findUnique({ where: { id: token.sub } });
-        (token as any).role = dbUser?.role ?? 'USER';
+      if (tokenWithRole.sub && tokenWithRole.role === undefined) {
+        const dbUser = await prisma.user.findUnique({ where: { id: tokenWithRole.sub } });
+        tokenWithRole.role = dbUser?.role;
       }
-      return token;
+      return tokenWithRole;
     },
     async session({ session, token }) {
-      if (session.user && token?.sub) {
-        (session.user as any).id = token.sub;
-        (session.user as any).role = (token as any).role ?? 'USER';
+      const tokenWithRole: TokenWithRole = token as TokenWithRole;
+      if (session.user && tokenWithRole.sub) {
+        const userInSession = session.user as SessionUserWithExtras;
+        userInSession.id = tokenWithRole.sub;
+        userInSession.role = tokenWithRole.role;
       }
       return session;
     },

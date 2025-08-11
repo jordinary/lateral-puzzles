@@ -1,6 +1,9 @@
 import { prisma } from "@/lib/prisma";
 import PuzzleImage from "@/components/PuzzleImage";
 
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 async function getUploadsDebugInfo() {
   try {
     const response = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/debug/uploads`, {
