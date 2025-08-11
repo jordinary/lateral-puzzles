@@ -41,7 +41,10 @@ export async function POST(request: Request, context: { params: Promise<{ number
     await prisma.answerAttempt.create({
       data: { userId, levelId: level.id, isCorrect: false, answerText: normalized },
     });
-    return NextResponse.redirect(new URL(`/levels/${level.number}?status=wrong`, request.url));
+    return NextResponse.json({ 
+      success: false, 
+      message: "Nope! Try again." 
+    });
   }
 
   // Mark solved and unlock next level
@@ -65,7 +68,11 @@ export async function POST(request: Request, context: { params: Promise<{ number
     }
   });
 
-  return NextResponse.redirect(new URL(`/levels/${level.number + 1}`, request.url));
+  return NextResponse.json({ 
+      success: true, 
+      message: "Correct! Moving to next level...",
+      nextLevel: level.number + 1
+    });
 }
 
 export const runtime = "nodejs";
