@@ -10,6 +10,9 @@ export default function AnswerForm({ levelNumber }: AnswerFormProps) {
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Debug log for message state changes
+  console.log('Current message state:', message);
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -25,14 +28,17 @@ export default function AnswerForm({ levelNumber }: AnswerFormProps) {
       });
 
       const result = await response.json();
+      console.log('API Response:', result); // Debug log
 
       if (result.success) {
+        console.log('Setting success message:', result.message); // Debug log
         setMessage({ type: 'success', text: result.message });
         // Redirect to next level after a short delay
         setTimeout(() => {
           window.location.href = `/levels/${result.nextLevel}`;
         }, 1500);
       } else {
+        console.log('Setting error message:', result.message); // Debug log
         setMessage({ type: 'error', text: result.message });
         // Clear the input field
         (e.currentTarget.elements.namedItem('answer') as HTMLInputElement).value = '';

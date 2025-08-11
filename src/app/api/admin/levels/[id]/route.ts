@@ -22,34 +22,50 @@ async function requireAdmin() {
 }
 
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
-  const session = await requireAdmin();
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  const { id } = await params;
-  const body = await request.json();
-  const { number, title, prompt, hint, assetUrl, content, answers } = body ?? {};
-  const updated = await prisma.level.update({
-    where: { id },
-    data: {
+  try {
+    const session = await requireAdmin();
+    if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const { id } = await params;
+    const body = await request.json();
+    const { number, title, prompt, hint, assetUrl, content, answers } = body ?? {};
+
+    // Normalize optional fields: convert empty strings to null, ensure strings where expected
+    const normalizedData: Record<string, unknown> = {
       number: number !== undefined ? Number(number) : undefined,
-      title,
-      prompt,
-      hint,
-      assetUrl,
-      content,
-    },
-  });
-  if (answers !== undefined) {
-    await prisma.levelAnswer.deleteMany({ where: { levelId: id } });
-    const list: string[] = String(answers)
-      .split(/[\n,]/)
-      .map((s) => s.trim().toLowerCase())
-      .filter((s) => s.length > 0);
-    const unique = Array.from(new Set(list));
-    for (const ans of unique) {
-      await prisma.levelAnswer.create({ data: { levelId: id, answerHash: await bcrypt.hash(ans, 10) } });
+      title: typeof title === "string" ? title : undefined,
+      prompt: typeof prompt === "string" ? prompt : undefined,
+      hint: typeof hint === "string" ? (hint.length ? hint : null) : undefined,
+      assetUrl: typeof assetUrl === "string" ? (assetUrl.length ? assetUrl : null) : undefined,
+      content: typeof content === "string" ? (content.length ? content : null) : undefined,
+    };
+
+    const updated = await prisma.level.update({
+      where: { id },
+      data: normalizedData,
+    });
+    // Only replace answers if provided and non-empty; ignore when blank to preserve existing
+    if (typeof answers === "string" && answers.trim().length > 0) {
+      await prisma.levelAnswer.deleteMany({ where: { levelId: id } });
+      const normalized = answers.replace(/\r\n/g, "\n");
+      const list: string[] = normalized
+        .split(/[\n,]/)
+        .map((s) => s.trim().toLowerCase())
+        .filter((s) => s.length > 0);
+      const unique = Array.from(new Set(list));
+      for (const ans of unique) {
+        await prisma.levelAnswer.create({ data: { levelId: id, answerHash: await bcrypt.hash(ans, 10) } });
+      }
     }
+    return NextResponse.json({ ok: true, id: updated.id });
+  } catch (error: unknown) {
+    const err = error as { code?: string; message?: string };
+    if (err?.code === "P2002") {
+      return NextResponse.json({ error: "Level number must be unique" }, { status: 409 });
+    }
+    console.error("Update level error:", error);
+    const message = process.env.NODE_ENV !== "production" && err?.message ? err.message : "Internal Server Error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
-  return NextResponse.json({ ok: true, id: updated.id });
 }
 
 export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {

@@ -24,9 +24,10 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const isRetro = process.env.NEXT_PUBLIC_RETRO_UI !== "0";
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased ${isRetro ? "retro" : ""}`}>
         <Providers>
           <Nav />
           {children}

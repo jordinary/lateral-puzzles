@@ -37,20 +37,31 @@ export default function Editor({ level }: { level: LevelData }) {
     event.preventDefault();
     const fd = new FormData(event.currentTarget);
     const payload = Object.fromEntries(fd.entries());
+    // Only send answers if non-empty to preserve existing answers when left blank
+    const body: Record<string, unknown> = {
+      number: Number(payload.number),
+      title: payload.title,
+      prompt: payload.prompt,
+      hint: payload.hint,
+      content: payload.content,
+      assetUrl,
+    };
+    const answersRaw = typeof payload.answers === "string" ? payload.answers.trim() : "";
+    if (answersRaw.length > 0) {
+      body.answers = payload.answers;
+    }
+
     const res = await fetch(`/api/admin/levels/${level.id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        number: payload.number,
-        title: payload.title,
-        prompt: payload.prompt,
-        hint: payload.hint,
-        content: payload.content,
-        answers: payload.answers,
-        assetUrl,
-      }),
+      body: JSON.stringify(body),
     });
-    if (res.ok) router.push("/admin/levels");
+    if (res.ok) {
+      router.push("/admin/levels");
+    } else {
+      const data = await res.json().catch(() => ({}));
+      alert(data?.error ?? "Failed to save level");
+    }
   }
 
   async function onDelete() {

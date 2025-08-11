@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
+import MenuBar from "./ui/MenuBar";
 
 interface SessionUser {
   id: string;
@@ -16,20 +17,22 @@ export default function Nav() {
   const user = data?.user as SessionUser | undefined;
   const isAdmin = user?.email === "admin@example.com" || user?.role === "ADMIN";
   return (
-    <header className="w-full border-b">
-      <div className="max-w-5xl mx-auto p-4 flex items-center justify-between">
-        <Link href="/levels" className="font-semibold">Lateral Puzzles</Link>
-        <nav className="flex items-center gap-4">
-          <Link href="/levels" className="underline">Levels</Link>
-          {isAuthed && isAdmin && <Link href="/admin" className="text-sm underline">Admin</Link>}
-          {isAuthed ? (
-            <button onClick={() => signOut({ callbackUrl: "/login" })} className="text-sm underline">
-              Sign out
-            </button>
-          ) : (
-            <Link href="/login" className="text-sm underline">Sign in</Link>
-          )}
-        </nav>
+    <header className="w-full border-b border-[var(--border)] bg-[var(--surface-2)]">
+      <div className="max-w-5xl mx-auto">
+        <MenuBar
+          left={[
+            { href: "/levels", label: "Lateral Puzzles" },
+            { href: "/levels", label: "Levels" },
+            ...(isAuthed && isAdmin ? [{ href: "/admin", label: "Admin" }] : []),
+          ]}
+          right={
+            isAuthed ? (
+              <button onClick={() => signOut({ callbackUrl: "/login" })} className="menu-item text-sm">Sign out</button>
+            ) : (
+              <Link href="/login" className="menu-item text-sm">Sign in</Link>
+            )
+          }
+        />
       </div>
     </header>
   );
