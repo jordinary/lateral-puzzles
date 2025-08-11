@@ -13,7 +13,13 @@ interface SessionUser {
 
 export async function POST(request: Request, context: { params: Promise<{ number: string }> }) {
   const session = await getServerSession(authOptions);
-  if (!session?.user) return NextResponse.redirect(new URL("/login", request.url));
+  if (!session?.user) {
+    return NextResponse.json({ 
+      success: false, 
+      requiresAuth: true,
+      message: "Please log in or create an account to submit answers and see if you're correct!" 
+    });
+  }
   const userId = (session.user as SessionUser).id;
 
   const p = await context.params;
