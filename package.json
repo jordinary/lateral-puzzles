@@ -10,6 +10,7 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev --name init",
     "prisma:seed": "node prisma/seed.js",
+    "db:reset": "./scripts/reset-db.sh",
     "admin:set": "tsx scripts/set-admin.ts",
     "generate:secret": "node scripts/generate-secret.js"
   },
@@ -21,8 +22,6 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "@upstash/ratelimit": "^2.0.6",
-    "@upstash/redis": "^1.35.3",
     "bcrypt": "^6.0.0",
     "imagekit": "^6.0.0",
     "next": "15.4.6",

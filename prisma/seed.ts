@@ -17,14 +17,21 @@ async function main() {
     create: { email: adminEmail, name: "Admin", passwordHash: adminPassword, role: "ADMIN" },
   });
 
-  // Seed a few lateral-thinking style puzzles
+  // Check if levels already exist to avoid overwriting admin changes
+  const existingLevels = await prisma.level.findMany();
+  if (existingLevels.length > 0) {
+    console.log("Database already contains levels, skipping seed to preserve admin changes.");
+    return;
+  }
+
+  // Seed a few lateral-thinking style puzzles (only if database is empty)
   const levels = [
     {
       number: 1,
       title: "The Missing Dollar",
       prompt:
         "Three people pay $30 for a room. The clerk realizes the room is $25 and gives $5 to the bellhop to return. The bellhop keeps $2 and gives $1 back to each person. People say: 9 + 9 + 9 = 27, and 27 + 2 = 29, so $1 is missing. What single keyword best describes the trick being used here? Enter exactly one word.",
-      hint: "They’re adding unlike quantities (apples + oranges). The answer is the name of this rhetorical trick.",
+      hint: "They're adding unlike quantities (apples + oranges). The answer is the name of this rhetorical trick.",
       answers: ["there is none", "no missing dollar", "misdirection"],
     },
     {
@@ -46,22 +53,15 @@ async function main() {
   ];
 
   for (const lvl of levels) {
-    const level = await prisma.level.upsert({
-      where: { number: lvl.number },
-      update: {
-        title: lvl.title,
-        prompt: lvl.prompt,
-        hint: lvl.hint,
-      },
-      create: {
+    const level = await prisma.level.create({
+      data: {
         number: lvl.number,
         title: lvl.title,
         prompt: lvl.prompt,
         hint: lvl.hint,
       },
     });
-    // Replace answers set
-    await prisma.levelAnswer.deleteMany({ where: { levelId: level.id } });
+    // Create answers set
     for (const ans of lvl.answers) {
       await prisma.levelAnswer.create({
         data: { levelId: level.id, answerHash: await hashAnswer(ans) },

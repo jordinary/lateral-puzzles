@@ -20,9 +20,6 @@ services:
         sync: false
       - key: EMAIL_FROM
         sync: false
-      - key: UPSTASH_REDIS_REST_URL
-        sync: false
-      - key: UPSTASH_REDIS_REST_TOKEN
         sync: false
       - key: IMAGEKIT_PUBLIC_KEY
         sync: false

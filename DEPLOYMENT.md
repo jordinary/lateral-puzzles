@@ -96,8 +96,9 @@ After deployment, you need to run database migrations:
 2. Run these commands:
    ```bash
    npx prisma migrate deploy
-   npx prisma db seed
    ```
+   
+   **Note**: The database will be automatically seeded with initial data only if it's empty. This prevents admin changes from being overwritten on application restarts.
 
 ## 🔧 Step 7: Admin Setup
 
@@ -114,6 +115,23 @@ Your app should now be accessible at:
 ```
 https://your-app-name.onrender.com
 ```
+
+## 🗄️ Database Management
+
+### Resetting Database (Development Only)
+If you need to reset the database to initial state (this will delete all admin changes and user progress):
+
+```bash
+npm run db:reset
+```
+
+**⚠️ Warning**: This should only be used in development or when you intentionally want to reset everything.
+
+### Preserving Admin Changes
+The application is now configured to preserve admin changes to levels:
+- Initial seeding only happens when the database is empty
+- Admin modifications are preserved across application restarts
+- Use the admin panel to modify levels instead of resetting the database
 
 ## 🔍 Troubleshooting
 

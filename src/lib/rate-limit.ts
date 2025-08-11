@@ -1,34 +1,9 @@
-import { Ratelimit } from "@upstash/ratelimit";
-import { Redis } from "@upstash/redis";
+// Simple in-memory rate limiter (no external dependencies)
+// Can be replaced with Redis-based rate limiting in the future if needed
 
-// Create a new ratelimiter that allows 3 requests per 10 minutes
-export const rateLimiter = new Ratelimit({
-  redis: Redis.fromEnv(),
-  limiter: Ratelimit.slidingWindow(3, "10 m"),
-  analytics: true,
-  prefix: "@upstash/ratelimit",
-});
-
-// Fallback rate limiter for when Redis is not configured
-export const memoryRateLimiter = new Map<string, { count: number; resetTime: number }>();
+const memoryRateLimiter = new Map<string, { count: number; resetTime: number }>();
 
 export async function checkRateLimit(identifier: string): Promise<{ success: boolean; limit: number; remaining: number; reset: number }> {
-  try {
-    // Try to use Upstash Redis rate limiter
-    if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
-      const result = await rateLimiter.limit(identifier);
-      return {
-        success: result.success,
-        limit: result.limit,
-        remaining: result.remaining,
-        reset: result.reset,
-      };
-    }
-  } catch (error) {
-    console.warn("Redis rate limiting failed, falling back to memory:", error);
-  }
-
-  // Fallback to in-memory rate limiting
   const now = Date.now();
   const windowMs = 10 * 60 * 1000; // 10 minutes
   const maxRequests = 3;
