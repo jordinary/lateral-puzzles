@@ -32,3 +32,18 @@ a, button, [role="button"], input[type="submit"], input[type="button"], summary,
 
 /* keep minimal global utilities only */
 html, body { height: auto; }
+
+/* Improve contrast for common muted/border utilities on dark backgrounds */
+@media (prefers-color-scheme: dark) {
+  /* Tailwind-style muted text classes seen in code */
+  .text-gray-500 { color: #c9c9c9 !important; }
+  .text-gray-400 { color: #d8d8d8 !important; }
+  .text-gray-300 { color: #e5e5e5 !important; }
+
+  /* Borders should be visible on dark bg */
+  .border { border-color: #2a2a2a !important; }
+
+  /* Links with underline should remain readable */
+  a.underline { text-decoration-color: rgba(237, 237, 237, 0.8); }
+  a.underline:hover { text-decoration-color: rgba(237, 237, 237, 1); }
+}
