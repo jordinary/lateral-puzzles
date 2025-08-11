@@ -40,12 +40,8 @@ else
     echo "✅ Database already contains data, skipping seed operation."
 fi
 
-# Ensure uploads directory exists with proper permissions
-echo "📁 Setting up uploads directory..."
-mkdir -p public/uploads
-chmod 755 public/uploads
-echo "✅ Uploads directory ready"
-
+# Note: No local uploads directory needed - using ImageKit for persistent storage
+echo "✅ ImageKit storage configured"
 echo "✅ Database setup complete"
 
 # Start the application
